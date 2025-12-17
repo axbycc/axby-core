@@ -1,0 +1,34 @@
+build -c opt
+
+startup --windows_enable_symlinks
+build --enable_runfiles
+build --build_python_zip=false # building python zip is slow
+
+# Windows specific stuff
+# todo: unversion this file and create two versions
+# .bazelrc_windows and .bazelrc_linux
+# and then a setup script
+build --config=vs2022
+build --disk_cache=D:/bazel_disk_cache
+startup --output_user_root=D:/bazel_cache 
+
+# Shared Visual Studio config
+build:msvc --cxxopt=/std:c++20
+build:msvc --copt=/external:W0
+build:msvc --copt=/we4715 # no return value
+build:msvc --enable_runfiles # https://github.com/bazelbuild/bazel/issues/8843
+build:msvc --copt=-DWIN32_LEAN_AND_MEAN
+build:msvc --host_copt=-DWIN32_LEAN_AND_MEAN
+
+# stack trace capture
+build:msvc --copt=/Z7
+build:msvc --linkopt=/DEBUG
+
+# Visual Studio 2022
+build:vs2022 --config=msvc
+build:vs2022 --define compiler=vs2022
+
+# cuda setup
+build --flag_alias=cuda_copts=@rules_cuda//cuda:copts
+build --flag_alias=cuda_host_copts=@rules_cuda//cuda:host_copts
+build --cuda_copts=--std=c++20

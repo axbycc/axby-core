@@ -1,0 +1,25 @@
+build -c opt --copt -g --strip=never
+
+build --enable_runfiles
+build --build_python_zip=false # building python zip is slow
+
+build --config=gcc
+build --disk_cache=~/bazel_disk_cache
+startup --output_user_root=~/bazel_cache 
+
+build:gcc --cxxopt=-std=c++20
+build:gcc --cxxopt=-Wall
+build:gcc --cxxopt=-Wno-pragmas
+build:gcc --cxxopt=-Wno-sign-compare
+build:gcc --cxxopt=-Wno-error=pragmas
+build:gcc --cxxopt=-Wno-error=unused-variable
+build:gcc --cxxopt=-Wno-error=unused-but-set-variable
+build:gcc --cxxopt=-Wno-error=sign-compare
+build:gcc --cxxopt=-Wno-error=deprecated-enum-enum-conversion
+build:gcc --cxxopt=-Werror
+build:gcc --define compiler=gcc
+
+# cuda setup
+build --flag_alias=cuda_copts=@rules_cuda//cuda:copts
+build --flag_alias=cuda_host_copts=@rules_cuda//cuda:host_copts
+build --cuda_copts=--std=c++20
