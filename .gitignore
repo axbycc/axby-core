@@ -1,0 +1,8 @@
+bazel-*
+TAGS
+.#*
+.DS_STORE
+_pip_download_cache
+.bazelrc
+MODULE.bazel.lock
+__pycache__

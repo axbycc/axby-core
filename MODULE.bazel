@@ -1,0 +1,96 @@
+###############################################################################
+# Bazel now uses Bzlmod by default to manage external dependencies.
+# Please consider migrating your external dependencies from WORKSPACE to MODULE.bazel.
+#
+# For more details, please check https://github.com/bazelbuild/bazel/issues/18958
+###############################################################################
+module(name="axby", version="0.0")
+
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "rules_python", version = "0.40.0")
+bazel_dep(name = "platforms", version = "0.0.11", dev_dependency = True)
+
+bazel_dep(name = "rules_cuda", version = "0.2.5")
+cuda = use_extension("@rules_cuda//cuda:extensions.bzl", "toolchain")
+cuda.local_toolchain(
+    name = "local_cuda",
+)
+use_repo(cuda, "local_cuda")
+
+make_system_deps = use_extension("@//:system_deps.bzl", "make_system_deps")
+use_repo(make_system_deps, "system_deps")
+
+# Hedron's Compile Commands Extractor for Bazel
+# https://github.com/hedronvision/bazel-compile-commands-extractor
+bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+git_override(
+    module_name = "hedron_compile_commands",
+    remote = "https://github.com/mikael-s-persson/bazel-compile-commands-extractor",
+    commit = "f5fbd4cee671d8d908f37c83abaf70fba5928fc7"
+)
+
+
+# Python configuration. Check ./python_toolchain_notes.org for more information
+python_version = "3.12"
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(python_version = python_version, is_default=True)
+
+# The call above makes python module extension to generate a
+# repository called "python_3_12_x86_64-pc-windows-msvc", as well as
+# repositories for every other platform corresponding to the version
+# mentioned.
+
+# We have to call use_repo to bring the repos into the scope of this module
+# use_repo(python, "python_3_10_x86_64-pc-windows-msvc") 
+
+# Now we can do
+# bazel query "@python_3_12_x86_64-pc-windows-msvc//:*"
+
+# It also generates a repo called "pythons_hub"
+use_repo(python, "pythons_hub")
+
+# Internal to rules_python module, it calls register_toolchains
+# so our module will be able to see the new python toolchains
+# because bazel's toolchain resolution rules
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+
+# Set up an isolated pip hub just for getting up a pip-compile environment
+# because the default one provided by python_rules needs to be monkey-patched
+#     https://github.com/bazelbuild/rules_python/issues/1821
+#     https://github.com/pypa/pip/issues/12588
+#     https://github.com/jazzband/pip-tools/issues/2073
+# This repo is used by the update_requirements.py script. Update by running
+# `bazel run :pip_patching_requirements.update` at root.
+pip.parse(
+    hub_name = "pip_patching",
+    python_version = python_version,
+    requirements_lock = "//:pip_patching_requirements.txt",
+    requirements_windows = "//:pip_patching_requirements_windows.txt",
+)
+use_repo(pip, "pip_patching")
+
+# Actual pip repository. Update by running `bazel run :update_requirements`
+# at root. This run the monkey-patched version of pip and pip-compile.
+pip.parse(
+    hub_name = "pip",
+    python_version = python_version,
+    requirements_lock = "//:requirements.txt",
+    requirements_windows = "//:requirements_windows.txt",
+)
+
+use_repo(pip, "pip")
+
+# pybind11 and associated Bazel rules
+bazel_dep(name = "pybind11_bazel", version = "2.11.1.bzl.3")
+bazel_pybind11_configure = use_extension("@pybind11_bazel//:internal_configure.bzl", "internal_configure_extension")
+use_repo(bazel_pybind11_configure, "pybind11")
+
+# prefer nanobind over pybind since it provides stable abi support and
+# better ndarray support
+bazel_dep(name = "nanobind_bazel", version = "2.7.0")
+
+# basic cpp deps
+bazel_dep(name = "abseil-cpp", version = "20240116.1")
+bazel_dep(name = "googletest", version = "1.14.0.bcr.1")
+bazel_dep(name = "google_benchmark", version = "1.8.3")
