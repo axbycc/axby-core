@@ -52,27 +52,38 @@ std::array<float, 2> xy_from_depth(Seq<const float> invP_data,
 
 // fills xyz_out with 3d xyzs corresponding to the de-projected
 // pointcloud in the depth sensor frame
-void make_xyzs_from_depth_image(const DepthImageInfo& info,
-                                const XyzsFromDepthOptions& options,
-                                FastResizableVector<float>& xyzs_out);
+void make_xyzs_from_depth_image(const DepthImageInfo &info,
+                                const XyzsFromDepthOptions &options,
+                                FastResizableVector<float> &xyzs_out);
 
 // same as the above but restricted to `image_coordinates`
 // for invalid xyzs, (0,0,0) is output
 void make_xyzs_from_depth_image_coordinates(
-    const DepthImageInfo& info,
+    const DepthImageInfo &info,
     Seq<const float> image_coordinates,
-    FastResizableVector<float>& xyzs_out);
+    FastResizableVector<float> &xyzs_out);
 
 // tx_rgb_xyzs is the transform that takes the xyz points to the frame
 // of the rgb camera. rgbs are (0,0,0) when out of bounds
-void make_rgbs_from_xyzs(const RgbImageInfo& info,
+void make_rgbs_from_xyzs(const RgbImageInfo &info,
                          Seq<const float> tx_rgb_xyzs,
                          Seq<const float> xyzs,
-                         FastResizableVector<uint8_t>& out);
+                         FastResizableVector<uint8_t> &out);
 
-void make_xyzs_and_rgbs_from_rgbd(const RgbdInfo& info,
-                                  const XyzsFromDepthOptions& options,
-                                  FastResizableVector<float>& xyzs,
-                                  FastResizableVector<uint8_t>& rgbs);
+void make_xyzs_and_rgbs_from_rgbd(const RgbdInfo &info,
+                                  const XyzsFromDepthOptions &options,
+                                  FastResizableVector<float> &xyzs,
+                                  FastResizableVector<uint8_t> &rgbs);
+
+// for each xy in query_xys, we find the closest point(s) along the
+// ray in the scene_xyzs pointcloud to estimate the depth. this depth
+// is used to lift the query_xy into 3d.
+//
+// hm_image_xyzs is homogenous 4x4 col-major transform from xyz
+// coordinate to image coordinate
+void lift_xys_to_xyzs(Seq<const float> hm_image_xyzs,
+                      Seq<const float> scene_xyzs,
+                      Seq<const float> query_xys,
+                      FastResizableVector<float> &out_xyzs);
 
 }  // namespace axby

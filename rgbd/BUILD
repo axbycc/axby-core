@@ -9,6 +9,7 @@ cc_library(
         "//debug:log",
         "//fast_resizable_vector",
         "//third_party/eigen",
+        "//third_party/nanoflann",
         "//wrappers:eigen",
     ]
 )

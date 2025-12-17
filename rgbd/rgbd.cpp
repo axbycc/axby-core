@@ -2,6 +2,7 @@
 
 #include <Eigen/Dense>
 #include <cmath>
+#include <nanoflann.hpp>
 #include <stdexcept>
 
 #include "absl/strings/str_format.h"
@@ -56,16 +57,16 @@ std::array<float, 2> xy_from_depth(Seq<const float> invP_data,
 }
 
 void make_xyzs_from_depth_image_coordinates(
-    const DepthImageInfo& info,
+    const DepthImageInfo &info,
     Seq<const float> image_coordinates,
-    FastResizableVector<float>& xyzs_out) {
+    FastResizableVector<float> &xyzs_out) {
     xyzs_out.reserve(info.width * info.height);
     xyzs_out.clear();
 
     CM_Matrix4f hm_image_camera(info.hm_image_camera);
     Eigen::Matrix4f hm_camera_image = hm_image_camera.inverse();
 
-    const auto PushZeros = [](FastResizableVector<float>& xyzs_out) {
+    const auto PushZeros = [](FastResizableVector<float> &xyzs_out) {
         xyzs_out.push_back(0);
         xyzs_out.push_back(0);
         xyzs_out.push_back(0);
@@ -99,9 +100,9 @@ void make_xyzs_from_depth_image_coordinates(
     }
 }
 
-void make_xyzs_from_depth_image(const DepthImageInfo& info,
-                                const XyzsFromDepthOptions& options,
-                                FastResizableVector<float>& xyzs_out) {
+void make_xyzs_from_depth_image(const DepthImageInfo &info,
+                                const XyzsFromDepthOptions &options,
+                                FastResizableVector<float> &xyzs_out) {
     xyzs_out.reserve(info.width * info.height);
     xyzs_out.clear();
 
@@ -136,10 +137,10 @@ void make_xyzs_from_depth_image(const DepthImageInfo& info,
     }
 }
 
-void make_rgbs_from_xyzs(const RgbImageInfo& info,
+void make_rgbs_from_xyzs(const RgbImageInfo &info,
                          Seq<const float> tx_rgb_xyzs,
                          Seq<const float> xyzs,
-                         FastResizableVector<uint8_t>& out) {
+                         FastResizableVector<uint8_t> &out) {
     CHECK_EQ(xyzs.size() % 3, 0);
     const size_t num_points = xyzs.size() / 3;
 
@@ -149,7 +150,7 @@ void make_rgbs_from_xyzs(const RgbImageInfo& info,
     Eigen::Matrix4f hm_rgbimage_depth =
         CM_Matrix4f(info.hm_image_camera) * CM_Matrix4f(tx_rgb_xyzs);
 
-    const auto PushZero = [](FastResizableVector<uint8_t>& out) {
+    const auto PushZero = [](FastResizableVector<uint8_t> &out) {
         out.push_back(0);
         out.push_back(0);
         out.push_back(0);
@@ -183,16 +184,128 @@ void make_rgbs_from_xyzs(const RgbImageInfo& info,
         out.push_back(b);
     }
 
-    CHECK_EQ(out.size(), 3*num_points);
+    CHECK_EQ(out.size(), 3 * num_points);
     CHECK_EQ(out.size(), xyzs.size());
 }
 
-void make_xyzs_and_rgbs_from_rgbd(const RgbdInfo& info,
-                                  const XyzsFromDepthOptions& options,
-                                  FastResizableVector<float>& xyzs,
-                                  FastResizableVector<uint8_t>& rgbs) {
+void make_xyzs_and_rgbs_from_rgbd(const RgbdInfo &info,
+                                  const XyzsFromDepthOptions &options,
+                                  FastResizableVector<float> &xyzs,
+                                  FastResizableVector<uint8_t> &rgbs) {
     make_xyzs_from_depth_image(info.depth, options, xyzs);
     make_rgbs_from_xyzs(info.rgb, info.tx_rgb_depth, xyzs, rgbs);
 };
+
+struct NanoFlannData {
+    std::span<const float> xy;
+
+    size_t kdtree_get_point_count() const { return xy.size() / 2; }
+
+    float kdtree_get_pt(const size_t idx, const size_t dim) const {
+        CHECK(2 * idx < xy.size());
+        CHECK(dim < 2);
+        return xy[idx * 2 + dim];
+    }
+
+    template <class BBOX>
+    bool kdtree_get_bbox(BBOX & /*bb*/) const {
+        return false;
+    }
+};
+
+using NanoFlannIndex = nanoflann::KDTreeSingleIndexAdaptor<
+    nanoflann::L2_Simple_Adaptor<float, NanoFlannData>,
+    NanoFlannData,
+    2 /* dim */>;
+
+void lift_xys_to_xyzs(const Seq<const float> hm_image_xyzs,
+                      Seq<const float> scene_xyzs,
+                      Seq<const float> query_xys,
+                      FastResizableVector<float> &out_xyzs) {
+    CHECK_EQ(scene_xyzs.size() % 3, 0);
+    CHECK_EQ(query_xys.size() % 2, 0);
+
+    const size_t num_scene_points = scene_xyzs.size() / 3;
+
+    // project scene rgb xyzs into image coordinates
+    FastResizableVector<float> scene_xys;
+    scene_xys.resize(2 * num_scene_points);
+
+    for (int i = 0; i < num_scene_points; ++i) {
+        const float *scene_xyz = &scene_xyzs.data()[3 * i];
+
+        Eigen::Vector4f scene_xyzw;
+        scene_xyzw << scene_xyz[0], scene_xyz[1], scene_xyz[2], 1;
+
+        Eigen::Vector4f image_xyzw = CM_Matrix4f(hm_image_xyzs) * scene_xyzw;
+        image_xyzw /= image_xyzw(3);
+
+        const float ix = image_xyzw(0);
+        const float iy = image_xyzw(1);
+
+        scene_xys[2 * i] = ix;
+        scene_xys[2 * i + 1] = iy;
+    }
+
+    NanoFlannData flann_data;
+    flann_data.xy = scene_xys;
+    NanoFlannIndex flann(2, flann_data, /*max leaf*/ 300);
+
+    constexpr int NUM_NBRS = 10;
+    constexpr float MAX_DIST = 15;                           // pixels
+    constexpr float MAX_DIST_SQUARED = MAX_DIST * MAX_DIST;  // pixels squared
+
+    std::array<uint32_t, NUM_NBRS> nearest_neighbors;
+    std::array<float, NUM_NBRS> nearest_neighbor_dists_squared;
+
+    const Eigen::Matrix4f invP = CM_Matrix4f(hm_image_xyzs).inverse();
+
+    const auto num_queries = query_xys.size() / 2;
+    out_xyzs.resize(num_queries * 3);
+
+    for (int q = 0; q < num_queries; ++q) {
+        const float query_pt[2] = {query_xys[2 * q], query_xys[2 * q + 1]};
+
+        const size_t num_found =
+            flann.knnSearch(query_pt, NUM_NBRS, nearest_neighbors.data(),
+                            nearest_neighbor_dists_squared.data());
+
+        size_t num_valid = 0;
+        float total_weight = 0;
+        Eigen::Vector3f matched_point_acc;
+        matched_point_acc.setZero();
+
+        // first pass to estimate the depth
+        for (int i = 0; i < num_found; ++i) {
+            const float dist_squared = nearest_neighbor_dists_squared[i];
+            if (dist_squared > MAX_DIST_SQUARED) continue;
+
+            const auto nbr_idx = nearest_neighbors[i];
+            CM_Vector3f scene_point{&scene_xyzs[3 * nbr_idx]};
+
+            const float weight = std::exp(-dist_squared / MAX_DIST_SQUARED);
+            matched_point_acc += scene_point * weight;
+            total_weight += weight;
+            num_valid++;
+        }
+
+        M_Vector3f out_point{&out_xyzs[3 * q]};
+        out_point.setZero();
+
+        if (num_valid > 0) {
+            matched_point_acc /= total_weight;
+
+            const float estimated_z = matched_point_acc(2);
+            const auto estimated_xy =
+                xy_from_depth(invP, query_pt[0], query_pt[1], estimated_z);
+
+            out_point << estimated_xy[0], estimated_xy[1], estimated_z;
+        }
+
+        CHECK(out_point.allFinite());
+    }
+
+    // use these to lookup
+}
 
 }  // namespace axby

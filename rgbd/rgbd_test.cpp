@@ -389,3 +389,44 @@ TEST(make_rgbs_from_xyzs, id) {
         EXPECT_EQ(rgbs_out[i], rgbs[i]);
     }
 }
+
+TEST(lift_xys_to_xyzs, case1) {
+    Eigen::Matrix4f hm_image_camera = Id4f();
+    hm_image_camera.topLeftCorner<2,2>() *= 1000;
+
+    const int num_scene_points = 10;
+    const int num_query_points = 1;
+
+    FastResizableVector<float> scene_xyzs;
+    FastResizableVector<float> query_xys;
+
+    LinearCongruentialGenerator lcg;
+    for (int i = 0; i < num_scene_points; ++i) {
+        const float x = lcg.generate() * 10;
+        const float y = lcg.generate() * 10;
+        const float z = std::abs(lcg.generate() * 10);
+        scene_xyzs.push_back(x);
+        scene_xyzs.push_back(y);
+        scene_xyzs.push_back(z);
+
+        if (i < num_query_points) {
+            Eigen::Vector4f scene_xyzw;
+            scene_xyzw << x, y, z, 1;
+
+            Eigen::Vector4f image_xyzw = hm_image_camera * scene_xyzw;
+            const float image_x = image_xyzw(0) / image_xyzw(3);
+            const float image_y = image_xyzw(1) / image_xyzw(3);
+            query_xys.push_back(image_x);
+            query_xys.push_back(image_y);
+        }
+    }
+
+    FastResizableVector<float> out_xyzs;
+    lift_xys_to_xyzs(hm_image_camera, scene_xyzs, query_xys, out_xyzs);
+
+    for (int i = 0; i < num_query_points; ++i) {
+        EXPECT_NEAR(out_xyzs[3 * i], scene_xyzs[3 * i], 1e-3);
+        EXPECT_NEAR(out_xyzs[3 * i + 1], scene_xyzs[3 * i + 1], 1e-3);
+        EXPECT_NEAR(out_xyzs[3 * i + 2], scene_xyzs[3 * i + 2], 1e-3);
+    }
+}
