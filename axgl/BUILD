@@ -106,8 +106,8 @@ cc_library(
     deps = [
         "//debug:check",
         "//third_party/glad",
-        "//third_party/sdl",
         "@googletest//:gtest",
+        "@system_deps//:sdl",
     ],
 )
 
@@ -120,8 +120,8 @@ cc_binary(
         "//debug:check",
         "//seq",
         "//third_party/glad",
-        "//third_party/sdl",
         "@googletest//:gtest_main",
+        "@system_deps//:sdl",
     ],
 )
 
@@ -132,8 +132,8 @@ cc_binary(
         ":info",
         "//debug:check",
         "//third_party/glad",
-        "//third_party/sdl",
         "@googletest//:gtest_main",
+        "@system_deps//:sdl",
     ],
 )
 
@@ -146,8 +146,8 @@ cc_binary(
         "//debug:check",
         "//seq",
         "//third_party/glad",
-        "//third_party/sdl",
         "@googletest//:gtest_main",
+        "@system_deps//:sdl",
     ],
 )
 
@@ -175,7 +175,7 @@ cc_binary(
         "//debug:log",
         "//seq",
         "//third_party/glad",
-        "//third_party/sdl",
+        "@system_deps//:sdl",
     ],
 )
 

@@ -130,7 +130,7 @@ cc_library(
         "//third_party/imgui:imgui_base",
         "//third_party/imgui:imgui_sdl",
         "//third_party/implot",
-        "//third_party/sdl",
+        "@system_deps//:sdl",
     ],
 )
 

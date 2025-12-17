@@ -18,7 +18,7 @@ cc_library(
     deps = [
         ":imgui_base",
         "//third_party/glad:glad",
-        "//third_party/sdl:sdl",
+        "@system_deps//:sdl",
     ],
     strip_include_prefix = "/third_party/imgui",
 )
