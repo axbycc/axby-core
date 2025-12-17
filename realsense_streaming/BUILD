@@ -88,6 +88,7 @@ cc_binary(
     srcs = ["viewer.cpp"],
     deps = [
         ":client",
+        ":pointcloud_job",
         "//app:flag",
         "//app:gui",
         "//app:main",
