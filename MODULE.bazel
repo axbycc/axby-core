@@ -81,11 +81,6 @@ pip.parse(
 
 use_repo(pip, "pip")
 
-# pybind11 and associated Bazel rules
-bazel_dep(name = "pybind11_bazel", version = "2.11.1.bzl.3")
-bazel_pybind11_configure = use_extension("@pybind11_bazel//:internal_configure.bzl", "internal_configure_extension")
-use_repo(bazel_pybind11_configure, "pybind11")
-
 # prefer nanobind over pybind since it provides stable abi support and
 # better ndarray support
 bazel_dep(name = "nanobind_bazel", version = "2.7.0")
