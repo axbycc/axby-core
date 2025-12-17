@@ -1,0 +1,142 @@
+results over local wireless network from mark-desktop to robotics room flowbox
+
+
+ZMQ =================
+Remote:
+Server command (flowbox)
+bazel-bin/time_server/round_trip --server --conn tcp://192.168.1.6:7777
+
+Client command (mark-desktop)
+bazel-bin/time_server/round_trip --client --conn tcp://192.168.1.6:7777
+
+I20240304 13:05:01.957775 93584 round_trip.cpp:67] Avg rtt 1579.21
+I20240304 13:05:02.860095 93584 round_trip.cpp:67] Avg rtt 1800.7
+I20240304 13:05:03.778504 93584 round_trip.cpp:67] Avg rtt 1832.59
+I20240304 13:05:04.674949 93584 round_trip.cpp:67] Avg rtt 1788.56
+I20240304 13:05:05.605859 93584 round_trip.cpp:67] Avg rtt 1857.37
+I20240304 13:05:06.388056 93584 round_trip.cpp:67] Avg rtt 1561.09
+I20240304 13:05:07.329190 93584 round_trip.cpp:67] Avg rtt 1877.66
+I20240304 13:05:08.384826 93584 round_trip.cpp:67] Avg rtt 2106.33
+I20240304 13:05:09.374482 93584 round_trip.cpp:67] Avg rtt 1976.77
+I20240304 13:05:10.337451 93584 round_trip.cpp:67] Avg rtt 1920.13
+I20240304 13:05:11.353034 93584 round_trip.cpp:67] Avg rtt 2026.64
+I20240304 13:05:12.140084 93584 round_trip.cpp:67] Avg rtt 1570.1
+I20240304 13:05:12.972311 93584 round_trip.cpp:67] Avg rtt 1660.63
+I20240304 13:05:14.105613 93584 round_trip.cpp:67] Avg rtt 2261.83
+I20240304 13:05:14.942482 93584 round_trip.cpp:67] Avg rtt 1671.38
+
+Running stats version:
+I20240305 11:28:40.603446 134904 round_trip.cpp:78] Average rtt: mean=1729.12, std=2583.97, nsamples=63266
+
+Local:
+bazel-bin/time_server/round_trip --server 
+bazel-bin/time_server/round_trip --client
+I20240305 10:47:52.468984 98992 round_trip.cpp:77] Avg rtt 172.359
+I20240305 10:47:52.552983 98992 round_trip.cpp:77] Avg rtt 168.395
+I20240305 10:47:52.637984 98992 round_trip.cpp:77] Avg rtt 168.483
+I20240305 10:47:52.723569 98992 round_trip.cpp:77] Avg rtt 170.277
+I20240305 10:47:52.809628 98992 round_trip.cpp:77] Avg rtt 171.236
+I20240305 10:47:52.892630 98992 round_trip.cpp:77] Avg rtt 166.052
+I20240305 10:47:52.981626 98992 round_trip.cpp:77] Avg rtt 175.97
+I20240305 10:47:53.078630 98992 round_trip.cpp:77] Avg rtt 194.585
+I20240305 10:47:53.167626 98992 round_trip.cpp:77] Avg rtt 175.888
+I20240305 10:47:53.255625 98992 round_trip.cpp:77] Avg rtt 174.84
+I20240305 10:47:53.341627 98992 round_trip.cpp:77] Avg rtt 171.403
+I20240305 10:47:53.429630 98992 round_trip.cpp:77] Avg rtt 175.074
+I20240305 10:47:53.516629 98992 round_trip.cpp:77] Avg rtt 174.242
+I20240305 10:47:53.601629 98992 round_trip.cpp:77] Avg rtt 169.22
+
+Kissnet (UDP) ======================
+Local:
+I20240305 10:51:57.017189 124100 round_trip_kissnet.cpp:116] Avg rtt 57.4032
+I20240305 10:51:57.049206 124100 round_trip_kissnet.cpp:116] Avg rtt 63.6647
+I20240305 10:51:57.079185 124100 round_trip_kissnet.cpp:116] Avg rtt 59.7824
+I20240305 10:51:57.109205 124100 round_trip_kissnet.cpp:116] Avg rtt 58.4571
+I20240305 10:51:57.138206 124100 round_trip_kissnet.cpp:116] Avg rtt 59.1377
+I20240305 10:51:57.168184 124100 round_trip_kissnet.cpp:116] Avg rtt 59.485
+I20240305 10:51:57.198184 124100 round_trip_kissnet.cpp:116] Avg rtt 59.0299
+I20240305 10:51:57.228186 124100 round_trip_kissnet.cpp:116] Avg rtt 58.7006
+I20240305 10:51:57.258189 124100 round_trip_kissnet.cpp:116] Avg rtt 59.6647
+I20240305 10:51:57.288182 124100 round_trip_kissnet.cpp:116] Avg rtt 58.5729
+I20240305 10:51:57.317183 124100 round_trip_kissnet.cpp:116] Avg rtt 58.2455
+I20240305 10:51:57.347182 124100 round_trip_kissnet.cpp:116] Avg rtt 59.7685
+I20240305 10:51:57.377182 124100 round_trip_kissnet.cpp:116] Avg rtt 59.7784
+
+Remote:
+Running stats version:
+I20240305 11:23:34.151329 44536 round_trip_kissnet.cpp:111] Average rtt: mean=1639.97, std=2566.77, nsamples=52055
+
+desktop to rpi wired =====
+bazel run time_sync:client_demo -- --server_ip 192.168.1.14 --client_ip 192.168.1.2 --blast_size 10
+I20240307 17:32:37.978457  2628 client_demo.cpp:41] remote ts (sec) 2164.45
+I20240307 17:32:37.978457  2628 client_demo.cpp:42] estimated minimum round trip (usec) 211
+I20240307 17:32:37.980425  2628 client_demo.cpp:43] observed round trip (usec) 306
+I20240307 17:32:38.990689  2628 client_demo.cpp:41] remote ts (sec) 2165.47
+I20240307 17:32:38.990689  2628 client_demo.cpp:42] estimated minimum round trip (usec) 232
+I20240307 17:32:38.991653  2628 client_demo.cpp:43] observed round trip (usec) 356
+I20240307 17:32:40.002842  2628 client_demo.cpp:41] remote ts (sec) 2166.48
+I20240307 17:32:40.002842  2628 client_demo.cpp:42] estimated minimum round trip (usec) 216
+I20240307 17:32:40.003824  2628 client_demo.cpp:43] observed round trip (usec) 323
+I20240307 17:32:41.014756  2628 client_demo.cpp:41] remote ts (sec) 2167.49
+I20240307 17:32:41.014756  2628 client_demo.cpp:42] estimated minimum round trip (usec) 189
+I20240307 17:32:41.015759  2628 client_demo.cpp:43] observed round trip (usec) 323
+I20240307 17:32:42.028849  2628 client_demo.cpp:41] remote ts (sec) 2168.5
+I20240307 17:32:42.028849  2628 client_demo.cpp:42] estimated minimum round trip (usec) 227
+I20240307 17:32:42.029808  2628 client_demo.cpp:43] observed round trip (usec) 322
+I20240307 17:32:43.040982  2628 client_demo.cpp:41] remote ts (sec) 2169.51
+I20240307 17:32:43.040982  2628 client_demo.cpp:42] estimated minimum round trip (usec) 170
+I20240307 17:32:43.041955  2628 client_demo.cpp:43] observed round trip (usec) 322
+I20240307 17:32:44.051884  2628 client_demo.cpp:41] remote ts (sec) 2170.53
+I20240307 17:32:44.051884  2628 client_demo.cpp:42] estimated minimum round trip (usec) 263
+I20240307 17:32:44.053791  2628 client_demo.cpp:43] observed round trip (usec) 400
+
+
+flowbox wifi to rpi wired ===========
+bazel run time_sync:client_demo -- --server_ip 192.168.1.14 --client_ip 192.168.1.6 --blast_size 4 --window_duration 10.0
+I20240307 17:35:04.537045 1657630 client_demo.cpp:43] observed round trip (usec) 1345
+I20240307 17:35:05.537109 1657630 client_demo.cpp:41] remote ts (sec) 2277.13
+I20240307 17:35:05.537142 1657630 client_demo.cpp:42] estimated minimum round trip (usec) 1192
+I20240307 17:35:05.537148 1657630 client_demo.cpp:43] observed round trip (usec) 1384
+I20240307 17:35:06.537220 1657630 client_demo.cpp:41] remote ts (sec) 2278.13
+I20240307 17:35:06.537252 1657630 client_demo.cpp:42] estimated minimum round trip (usec) 1192
+I20240307 17:35:06.537261 1657630 client_demo.cpp:43] observed round trip (usec) 1384
+I20240307 17:35:07.537330 1657630 client_demo.cpp:41] remote ts (sec) 2279.13
+I20240307 17:35:07.537364 1657630 client_demo.cpp:42] estimated minimum round trip (usec) 1158
+I20240307 17:35:07.537372 1657630 client_demo.cpp:43] observed round trip (usec) 1384
+I20240307 17:35:08.537442 1657630 client_demo.cpp:41] remote ts (sec) 2280.13
+I20240307 17:35:08.537474 1657630 client_demo.cpp:42] estimated minimum round trip (usec) 1158
+I20240307 17:35:08.537480 1657630 client_demo.cpp:43] observed round trip (usec) 1384
+I20240307 17:35:09.537549 1657630 client_demo.cpp:41] remote ts (sec) 2281.14
+I20240307 17:35:09.537580 1657630 client_demo.cpp:42] estimated minimum round trip (usec) 1158
+I20240307 17:35:09.537585 1657630 client_demo.cpp:43] observed round trip (usec) 1384
+
+
+flowbox ethernet (192.168.5.134 office network) to mark desktop (193.168.1.2 router behind office network)
+
+I20240308 12:28:35.603717 12928 client_demo.cpp:45] remote ts (sec) 59.055
+I20240308 12:28:35.603717 12928 client_demo.cpp:46] estimated minimum round trip (usec) 287
+I20240308 12:28:35.606698 12928 client_demo.cpp:48] observed round trip (usec) 318
+I20240308 12:28:36.614089 12928 client_demo.cpp:45] remote ts (sec) 60.066
+I20240308 12:28:36.614089 12928 client_demo.cpp:46] estimated minimum round trip (usec) 242
+I20240308 12:28:36.616088 12928 client_demo.cpp:48] observed round trip (usec) 255
+I20240308 12:28:37.620820 12928 client_demo.cpp:45] remote ts (sec) 61.072
+I20240308 12:28:37.620820 12928 client_demo.cpp:46] estimated minimum round trip (usec) 268
+I20240308 12:28:37.621812 12928 client_demo.cpp:48] observed round trip (usec) 299
+I20240308 12:28:38.629760 12928 client_demo.cpp:45] remote ts (sec) 62.081
+I20240308 12:28:38.629760 12928 client_demo.cpp:46] estimated minimum round trip (usec) 272
+I20240308 12:28:38.630759 12928 client_demo.cpp:48] observed round trip (usec) 311
+I20240308 12:28:39.636512 12928 client_demo.cpp:45] remote ts (sec) 63.088
+I20240308 12:28:39.636512 12928 client_demo.cpp:46] estimated minimum round trip (usec) 242
+I20240308 12:28:39.638505 12928 client_demo.cpp:48] observed round trip (usec) 270
+I20240308 12:28:40.651955 12928 client_demo.cpp:45] remote ts (sec) 64.104
+I20240308 12:28:40.651955 12928 client_demo.cpp:46] estimated minimum round trip (usec) 270
+I20240308 12:28:40.653915 12928 client_demo.cpp:48] observed round trip (usec) 270
+I20240308 12:28:41.658835 12928 client_demo.cpp:45] remote ts (sec) 65.111
+I20240308 12:28:41.658835 12928 client_demo.cpp:46] estimated minimum round trip (usec) 270
+I20240308 12:28:41.660868 12928 client_demo.cpp:48] observed round trip (usec) 336
+I20240308 12:28:42.670557 12928 client_demo.cpp:45] remote ts (sec) 66.122
+I20240308 12:28:42.670557 12928 client_demo.cpp:46] estimated minimum round trip (usec) 260
+I20240308 12:28:42.671538 12928 client_demo.cpp:48] observed round trip (usec) 342
+I20240308 12:28:43.681923 12928 client_demo.cpp:45] remote ts (sec) 67.134
+I20240308 12:28:43.681923 12928 client_demo.cpp:46] estimated minimum round trip (usec) 226
+I20240308 12:28:43.682925 12928 client_demo.cpp:48] observed round trip (usec) 342
