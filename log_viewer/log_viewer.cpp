@@ -68,30 +68,6 @@ select min(this_process_time_us), max(this_process_time_us) from log
     return {0, 0};
 }
 
-std::pair<uint64_t, uint64_t> get_topic_time_bounds_us(duckdb_connection con,
-                                                       std::string_view topic) {
-    const char* sql = R"SQL_(
-select min(this_process_time_us), max(this_process_time_us) from log
-where topic = $topic
-)SQL_";
-
-    DuckDbPreparedStatement prepared_statement(con, sql);
-    prepared_statement.bind_param_string("topic", topic);
-    prepared_statement.execute();
-
-    auto& result = prepared_statement.result();
-    while (result.fetch_chunk()) {
-        idx_t num_rows = result.get_num_rows();
-        CHECK_EQ(num_rows, 1);
-        auto min_time_us = result.get_column<uint64_t>(0).row(0);
-        auto max_time_us = result.get_column<uint64_t>(1).row(0);
-        return {min_time_us, max_time_us};
-    }
-
-    LOG(FATAL) << "No records in log";
-    return {0, 0};
-}
-
 std::vector<std::string> get_topics_starting_with(
     duckdb_connection con, std::string_view topic_prefix) {
     const char* sql = R"SQL_(
