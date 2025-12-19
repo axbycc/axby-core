@@ -41,11 +41,22 @@ struct PublisherRequest {
     uint16_t flags = 0;
     MessageFrames frames;
 
+    // header_override, if set, is used as the message header for this
+    // set of message frames. this overrides the normal header
+    // constructed inside the publish thread. this is useful for
+    // playback, when we want to re-publish the header that was
+    // recorded into the log instead of a new header.
+    std::optional<MessageHeader> header_override;
+
     // if bind_address is nonempty, then publish thread will issue publisher_socket_.bind();
     std::string bind_address;
 };
+std::atomic<bool> publisher_requests_clear_ { false };
+void publisher_requests_clear() {
+    publisher_requests_clear_ = true;
+};
 std::mutex publish_requests_mutex_;
-RingBuffer<PublisherRequest, 20> publisher_requests_;
+RingBuffer<PublisherRequest, 1024> publisher_requests_;
 std::thread publisher_thread_;
 void run_publisher_thread() {
     CHECK(zmq_ctx_);
@@ -55,6 +66,11 @@ void run_publisher_thread() {
 
         uint64_t sequence_id = 0;
         while (!should_stop_all()) {
+            if (publisher_requests_clear_) {
+                publisher_requests_.clear();
+                publisher_requests_clear_ = false;
+            }
+            
             PublisherRequest request;
             if (!publisher_requests_.move_read(request, /*blocking=*/true)) {
                 // publish queue was stopped
@@ -75,13 +91,17 @@ void run_publisher_thread() {
                     << "Publishing on topic " << request.topic;
 
                 // send header
-                MessageHeader header{
-                    .sender_process_id = get_process_id(),
-                    .sender_sequence_id = sequence_id++,
-                    .sender_process_time_us = get_process_time_us(),
-                    .protocol_version = 0,
-                    .message_version = request.message_version,
-                    .flags = request.flags};
+                MessageHeader header;
+                if (request.header_override) {
+                    header = *request.header_override;
+                } else {
+                    header = {.sender_process_id = get_process_id(),
+                              .sender_sequence_id = sequence_id++,
+                              .sender_process_time_us = get_process_time_us(),
+                              .protocol_version = 0,
+                              .message_version = request.message_version,
+                              .flags = request.flags};
+                }
 
                 publisher_socket.send(
                     zmq::message_t(request.topic),
@@ -99,8 +119,7 @@ void run_publisher_thread() {
                     }
                     zmq::message_t frame_copy;
                     frame_copy.copy(request.frames.frames[i]);
-                    publisher_socket.send(std::move(frame_copy),
-                                          send_flags);
+                    publisher_socket.send(std::move(frame_copy), send_flags);
                 }
 
                 if (is_recording_) {
@@ -113,12 +132,11 @@ void run_publisher_thread() {
                         message.frames.push_back(std::move(frame_copy));
                     }
 
-                    std::lock_guard<std::mutex> lock { recorder_buffer_mutex_};
+                    std::lock_guard<std::mutex> lock{recorder_buffer_mutex_};
                     if (!recorder_buffer_.move_write(std::move(message))) {
                         LOG(WARNING) << "recorder buffer is full";
                     }
                 }
-
             }
         }
     } catch (const zmq::error_t& e) {
@@ -279,10 +297,16 @@ void run_subscriber_thread() {
                 }
 
                 if (is_recording_) {
-                    std::lock_guard<std::mutex> lock { recorder_buffer_mutex_};
-                    if (!recorder_buffer_.move_write(MakeMessage())) {
-                        LOG(WARNING) << "recorder buffer is full";
-                    };
+                    // we don't record internal messages from the
+                    // subscriber side, since we already log from
+                    // the publisher side.
+                    if (header.sender_process_id != get_process_id()) {
+                        std::lock_guard<std::mutex> lock{
+                            recorder_buffer_mutex_};
+                        if (!recorder_buffer_.move_write(MakeMessage())) {
+                            LOG(WARNING) << "recorder buffer is full";
+                        };
+                    }
                 }
             }
         }
@@ -358,6 +382,23 @@ void publish_frames(std::string_view topic,
     CHECK(publisher_requests_.move_write(std::move(request)))
         << "publish queue was full";
 }
+
+void publish_frames_with_manual_header(std::string_view topic,
+                                       MessageHeader& header,
+                                       MessageFrames&& frames) {
+    CHECK(publisher_thread_.joinable()) << "you forgot to init";
+
+    PublisherRequest request;
+    request.topic = topic;
+    request.frames = std::move(frames);
+    request.header_override = header;
+
+    // publish queue must be locked on the writer side, since we may
+    // have writers from multiple threads
+    std::lock_guard<std::mutex> lock{publish_requests_mutex_};
+    CHECK(publisher_requests_.move_write(std::move(request)))
+        << "publish queue was full";
+};
 
 void connect(std::string_view connection) {
     CHECK(subscriber_thread_.joinable()) << "you forgot to init";

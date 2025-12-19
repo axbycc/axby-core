@@ -93,7 +93,17 @@ void publish_frames(std::string_view topic,
                     MessageFrames&& frames,
                     uint16_t flags = 0);
 
+// used during playback to publish the header that was recorded into
+// the log, instead of constructing a new one
+void publish_frames_with_manual_header(std::string_view topic,
+                                       MessageHeader& header,
+                                       MessageFrames&& frames);
+
 void publish_topic_only(std::string_view topic);
+
+// used by playback system to clear pending publish requests when user
+// seeks
+void publisher_requests_clear();
 
 template <typename T>
 void publish_simple(std::string_view topic,

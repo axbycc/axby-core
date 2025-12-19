@@ -22,6 +22,7 @@ class PointCloudJob {
 
     uint64_t last_color_sequence_id() const;
     uint64_t last_depth_sequence_id() const;
+    SerialNumber last_serial_number() const;
 
     bool is_started() { return job_state_.is_started(); }
     bool is_complete() { return job_state_.is_complete(); }

@@ -470,18 +470,18 @@ void init(const network_config::Config& config, const Options& opts) {
     // the internal offset variables
     subscribe_thread_ = std::jthread(run_subscribe_thread);
 
-    const uint64_t timeout_ms = 3000;
-    const uint64_t start_time = get_process_time_ms();
-    while ((get_process_time_ms() - start_time) < timeout_ms) {
-        if (received_any_) break;
-        sleep_ms(100);
+    if (!system_config.kissnet.ip.empty()) {    
+        const uint64_t timeout_ms = 3000;
+        const uint64_t start_time = get_process_time_ms();
+        while ((get_process_time_ms() - start_time) < timeout_ms) {
+            if (received_any_) break;
+            sleep_ms(100);
+        }
+        if (!received_any_) {
+            LOG(FATAL) << "Could not connect to the time server.";
+        }
+        LOG(INFO) << "Connected to time sync server";
     }
-
-    if (!received_any_) {
-        LOG(FATAL) << "Could not connect to the time server.";
-    }
-
-    LOG(INFO) << "Connected to time sync server";
 }
 
 void cleanup() {

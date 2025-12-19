@@ -1,0 +1,41 @@
+cc_library(
+    name = "seekbar",
+    srcs = ["seekbar.cpp"],
+    hdrs = ["seekbar.h"],
+    deps = [
+        "//app:timing",
+        "//third_party/imgui:imgui_base",
+    ],
+)
+
+cc_binary(
+    name = "log_viewer",
+    srcs = ["log_viewer.cpp"],
+    deps = [
+        ":seekbar",
+        "//app:flag",
+        "//app:gui",
+        "//app:main",
+        "//app:pubsub",
+        "//app:stop_all",
+        "//app:timing",
+        "//concurrency:ring_buffer",
+        "//debug:check",
+        "//debug:log",
+        "//fast_resizable_vector",
+        "//network_config:config",
+        "//realsense_streaming:client",
+        "//realsense_streaming:messages",
+        "//realsense_streaming:pointcloud_job",
+        "//serialization",
+        "//serialization:make_serializable",
+        "//third_party/imgui:imgui_base",
+        "//third_party/imoverlayable",
+        "//time_sync",
+        "//viewer",
+        "//wrappers:duckdb",
+        "//wrappers:imgui",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@abseil-cpp//absl/strings:strings",
+    ],
+)

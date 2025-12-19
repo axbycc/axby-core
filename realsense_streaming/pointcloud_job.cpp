@@ -12,6 +12,10 @@ namespace realsense_streaming {
 PointCloudJob::PointCloudJob(std::shared_ptr<SimpleThreadPool> thread_pool)
     : thread_pool_(std::move(thread_pool)) {}
 
+SerialNumber PointCloudJob::last_serial_number() const {
+    return color_.stream_meta.id.serial_number;
+};
+
 uint64_t PointCloudJob::last_color_sequence_id() const {
     return color_.sequence_id;
 };

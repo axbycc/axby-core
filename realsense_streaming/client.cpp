@@ -11,6 +11,7 @@
 #include <vector>
 #include <zdepth.hpp>
 
+#include "absl/strings/str_format.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
 #include "app/pubsub.h"
@@ -127,6 +128,7 @@ void run_depth_thread() {
             CHECK(is_keyframe);
             CHECK(zdepth::IsKeyFrame((const uint8_t*)packet.data(),
                                      packet.size()));
+            LOG(INFO) << stream_meta.id << " got keyframe";
         }
 
         context.need_keyframe = false;
@@ -218,6 +220,11 @@ void run_color_thread() {
             // we have not gotten a keyframe yet
             // cannot ingest this packet
             continue;
+        }
+
+        if (context.need_keyframe) {
+            CHECK(is_keyframe);
+            LOG(INFO) << stream_meta.id << " got keyframe";
         }
 
         context.need_keyframe = false;
@@ -382,9 +389,9 @@ void init(const network_config::Config& network_config) {
     CHECK(!_initted);
 
     auto system_config = network_config.get("realsense");
-    CHECK(!system_config.connect.empty());
-
-    pubsub::connect(system_config.connect);
+    if (!system_config.connect.empty()) {
+        pubsub::connect(system_config.connect);
+    }
 
     pubsub::subscribe("realsense/color/", &_color_buffer);
     pubsub::subscribe("realsense/depth/", &_depth_buffer);

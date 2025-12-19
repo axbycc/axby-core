@@ -1,0 +1,5 @@
+BasedOnStyle: Google
+IndentWidth: 4
+UseTab: Never  # Ensures spaces are used instead of tabs
+ReflowComments: false
+BinPackParameters: false

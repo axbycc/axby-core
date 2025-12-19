@@ -27,6 +27,12 @@ cc_library(
 )
 
 cc_library(
+    name = "realsense_state",
+    hdrs = ["realsense_state.h"],
+    deps = [":messages"],
+)
+
+cc_library(
     name = "util",
     srcs = ["util.cpp"],
     hdrs = ["util.h"],
@@ -48,6 +54,7 @@ cc_library(
     hdrs = ["client.h"],
     deps = [
         ":messages",
+        ":realsense_state",
         "//app:pubsub",
         "//app:stop_all",
         "//app:timing",

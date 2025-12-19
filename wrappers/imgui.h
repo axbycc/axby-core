@@ -22,3 +22,9 @@ inline bool SliderFloat10x(const char* name,
     *value = value10x / 10;
     return result;
 };
+
+float imgui_get_window_bottom() {
+    ImVec2 window_size = ImGui::GetWindowSize();
+    ImVec2 window_pos = ImGui::GetWindowPos();
+    return window_pos.y + window_size.y;
+}
