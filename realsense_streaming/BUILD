@@ -106,6 +106,7 @@ cc_binary(
         "//third_party/imoverlayable",
         "//time_sync",
         "//viewer",
+        "//wrappers:imgui",
         "@abseil-cpp//absl/container:flat_hash_map",
         "@abseil-cpp//absl/strings:str_format",
     ],

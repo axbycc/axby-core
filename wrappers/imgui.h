@@ -23,8 +23,22 @@ inline bool SliderFloat10x(const char* name,
     return result;
 };
 
-float imgui_get_window_bottom() {
+inline float imgui_get_window_bottom() {
     ImVec2 window_size = ImGui::GetWindowSize();
     ImVec2 window_pos = ImGui::GetWindowPos();
     return window_pos.y + window_size.y;
+}
+
+// like ImGui::Image, except adds a convenient display_width parameter
+// to scale the image
+inline void imgui_image(void* texture_id,
+                        float data_width,
+                        float data_height,
+                        float display_width) {
+    if (display_width == 0) {
+        display_width = data_width;
+    }
+    float scale = display_width / data_width;
+    float display_height = scale * data_height;
+    ImGui::Image(texture_id, ImVec2(display_width, display_height));
 }

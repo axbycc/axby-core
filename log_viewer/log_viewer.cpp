@@ -1,5 +1,4 @@
 #include <imgui.h>
-#include <imoverlayable.h>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/match.h"
@@ -368,9 +367,9 @@ void make_gui(Context& ctx) {
                 if (viewer::have_image(color_viewer_key)) {
                     const auto image_handle =
                         viewer::get_image(color_viewer_key);
-                    ImOverlayable::image((void*)image_handle.texture,
-                                         (float)image_handle.width,
-                                         (float)image_handle.height, 150);
+                    imgui_image((void*)image_handle.texture,
+                                (float)image_handle.width,
+                                (float)image_handle.height, 150);
                 }
 
                 std::string depth_viewer_key =
@@ -381,9 +380,9 @@ void make_gui(Context& ctx) {
                                            /*cmap_invert=*/true);
                     const auto depth_image_handle =
                         viewer::get_image(depth_viewer_key);
-                    ImOverlayable::image((void*)depth_image_handle.texture,
-                                         (float)depth_image_handle.width,
-                                         (float)depth_image_handle.height, 150);
+                    imgui_image((void*)depth_image_handle.texture,
+                                (float)depth_image_handle.width,
+                                (float)depth_image_handle.height, 150);
                 }
             }
 
@@ -419,9 +418,9 @@ void make_gui(Context& ctx) {
                 absl::StrFormat("color_%s", ctx.selected_serial);
             if (viewer::have_image(color_viewer_key)) {
                 const auto image_handle = viewer::get_image(color_viewer_key);
-                ImOverlayable::image(
-                    (void*)image_handle.texture, (float)image_handle.width,
-                    (float)image_handle.height, 0.9 * window_width);
+                imgui_image((void*)image_handle.texture,
+                            (float)image_handle.width,
+                            (float)image_handle.height, 0.9 * window_width);
             }
 
             std::string depth_viewer_key =
@@ -434,10 +433,10 @@ void make_gui(Context& ctx) {
 
                 const auto depth_image_handle =
                     viewer::get_image(depth_viewer_key);
-                ImOverlayable::image((void*)depth_image_handle.texture,
-                                     (float)depth_image_handle.width,
-                                     (float)depth_image_handle.height,
-                                     0.9 * window_width);
+                imgui_image((void*)depth_image_handle.texture,
+                            (float)depth_image_handle.width,
+                            (float)depth_image_handle.height,
+                            0.9 * window_width);
             }
             ImGui::End();
         }

@@ -30,7 +30,6 @@ cc_binary(
         "//serialization",
         "//serialization:make_serializable",
         "//third_party/imgui:imgui_base",
-        "//third_party/imoverlayable",
         "//time_sync",
         "//viewer",
         "//wrappers:duckdb",

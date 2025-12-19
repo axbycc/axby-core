@@ -26,14 +26,17 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
 #include <imgui_internal.h>
-#include <utility> // std::pair
 
-#include "imoverlayable.h"
+#include <utility>  // std::pair
+
 #include "debug/log.h"
+#include "imoverlayable.h"
 
 namespace ImOverlayable {
 
-Overlay image(void* texture_id, float data_width, float data_height,
+Overlay image(void* texture_id,
+              float data_width,
+              float data_height,
               float display_width) {
     if (display_width == 0) {
         display_width = data_width;
@@ -90,8 +93,8 @@ void Overlay::_push_clip_rect() {
 
 void Overlay::_pop_clip_rect() { window_draw_list->PopClipRect(); }
 
-void Overlay::line(float x1, float y1, float x2, float y2, uint32_t color,
-                   float thickness) {
+void Overlay::line(
+    float x1, float y1, float x2, float y2, uint32_t color, float thickness) {
     auto [sx1, sy1] = transform(x1, y1);
     auto [sx2, sy2] = transform(x2, y2);
 
@@ -101,12 +104,11 @@ void Overlay::line(float x1, float y1, float x2, float y2, uint32_t color,
     _pop_clip_rect();
 }
 
-void Overlay::circle(float x, float y, float r, uint32_t color,
-                     float thickness) {
-
+void Overlay::circle(
+    float x, float y, float r, uint32_t color, float thickness) {
     auto [sx, sy] = transform(x, y);
     float sr = std::max(
-        scale * r, 1.0f); // anything under 1.0f radius will not be displayed
+        scale * r, 1.0f);  // anything under 1.0f radius will not be displayed
 
     _push_clip_rect();
     window_draw_list->AddCircle(ImVec2(sx, sy), std::max(sr, 1.0f), color, 12,
@@ -114,7 +116,9 @@ void Overlay::circle(float x, float y, float r, uint32_t color,
     _pop_clip_rect();
 }
 
-void Overlay::text(float x, float y, uint32_t color,
+void Overlay::text(float x,
+                   float y,
+                   uint32_t color,
                    const std::string_view text) {
     auto [sx, sy] = transform(x, y);
     _push_clip_rect();
@@ -123,7 +127,8 @@ void Overlay::text(float x, float y, uint32_t color,
 }
 
 void Overlay::polyline(std::span<const float> polyline_data,
-                       std::span<const uint32_t> colors, float thickness) {
+                       std::span<const uint32_t> colors,
+                       float thickness) {
     for (int i = 0; i < polyline_data.size(); i += 2) {
         int ni = (i + 2) % polyline_data.size();
         line(polyline_data[i], polyline_data[i + 1], polyline_data[ni],
@@ -132,7 +137,8 @@ void Overlay::polyline(std::span<const float> polyline_data,
 }
 
 void Overlay::line_list(std::span<const float> line_list_data,
-                        std::span<const uint32_t> colors, float thickness) {
+                        std::span<const uint32_t> colors,
+                        float thickness) {
     for (int i = 0; i < line_list_data.size() / 2; ++i) {
         int p = 2 * i;
         int np = 2 * i + 1;
@@ -141,4 +147,4 @@ void Overlay::line_list(std::span<const float> line_list_data,
     }
 }
 
-} // namespace ImOverlayable
+}  // namespace ImOverlayable
