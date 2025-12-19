@@ -20,6 +20,7 @@
 #include "seekbar.h"
 #include "serialization/make_serializable.hpp"
 #include "serialization/serialization.h"
+#include "simple_thread_pool.h"
 #include "time_sync/time_sync.h"
 #include "viewer/viewer.h"
 #include "wrappers/duckdb.h"
@@ -550,9 +551,6 @@ int main(int argc, char* argv[]) {
     rss::client::cleanup();
     time_sync::cleanup();
     pubsub::cleanup();
-    // for (auto& thread : frame_loading_threads) {
-    //     if (thread.joinable()) thread.join();
-    // }
 
     duckdb_close(&ctx.db);
 
